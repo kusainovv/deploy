@@ -1,12 +1,5 @@
 services:
   proxy:
-    ports:
-      - "80:80"
-      - "8090:8080"
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.${STACK_NAME?Variable not set}-traefik-public-http.rule=Host(`${DOMAIN?Variable not set}`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-traefik-public.loadbalancer.server.port=80
     image: traefik:v3.0
     env_file:
       - .env
@@ -74,7 +67,7 @@ services:
         - traefik.http.routers.${STACK_NAME?Variable not set}-proxy-http.middlewares=${STACK_NAME?Variable not set}-www-redirect,${STACK_NAME?Variable not set}-https-redirect
 
   backend: &backend
-    image: "ghcr.io/kusainovv/langflow:latest"
+    image: "langflowai/langflow-backend:latest"
     depends_on:
       - db
       - broker
@@ -106,8 +99,6 @@ services:
       - .env
 
   pgadmin:
-    ports:
-      - "5050:5050"
     image: dpage/pgadmin4
     networks:
       - ${TRAEFIK_PUBLIC_NETWORK?Variable not set}
@@ -148,12 +139,6 @@ services:
       test: "exit 0"
     deploy:
       replicas: 1
-    labels:
-      - traefik.enable=true
-      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-celeryworker-http.rule=PathPrefix(`/api/v1`) || PathPrefix(`/api/v2`) || PathPrefix(`/docs`) || PathPrefix(`/health`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-celeryworker.loadbalancer.server.port=7860
-
 
   flower:
     <<: *backend
@@ -161,8 +146,6 @@ services:
       - .env
     networks:
       - default
-    ports:
-      - "5555:5555"
     environment:
       - FLOWER_PORT=5555
 
@@ -182,15 +165,10 @@ services:
         - traefik.http.services.${STACK_NAME?Variable not set}-flower.loadbalancer.server.port=5555
 
   frontend:
-    image: "ghcr.io/kusainovv/langflow-frontend:latest"
+    image: "langflowai/langflow-frontend:latest"
     env_file:
       - .env
     restart: on-failure
-    labels:
-      - traefik.enable=true
-      - traefik.constraint-label-stack=${TRAEFIK_TAG?Variable not set}
-      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.rule=PathPrefix(`/`)
-      - traefik.http.services.${STACK_NAME?Variable not set}-frontend.loadbalancer.server.port=80
     deploy:
       labels:
         - traefik.enable=true
