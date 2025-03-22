@@ -6,14 +6,16 @@ To run Langflow with Docker compose, you need to have Docker and Docker compose 
 
 The docker-compose file uses `latest` tag; it's recommended to pull the latest version of the images before running the docker-compose file.
 
+To start the Langflow services using Dokploy, run the following command:
+
 ```bash
-docker compose pull
+compose -p <entity id> -f ./docker-compose.override.yml -f ./docker-compose.yml up -d --build --remove-orphans
 ```
 
-To start the Langflow services, run the following command:
+To start the Langflow services in raw mode only, run the following command:
 
 ```bash
-docker compose up
+docker compose -f ./docker-compose.override.yml -f ./docker-compose.yml up -d --build --remove-orphans
 ```
 
 After running the command, you can access the Langflow services at the following url: http://localhost:80.
